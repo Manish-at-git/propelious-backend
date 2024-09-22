@@ -14,10 +14,7 @@ const options = {
 				url: `http://localhost:${PORT}`,
 			},
 			{
-				url: "https://api.yourproductiondomain.com", // Production server
-			},
-			{
-				url: "https://api.yourstagingdomain.com", // Staging server
+				url: "https://propelious-backend.onrender.com",
 			},
 		],
 	},

@@ -16,7 +16,7 @@ const swaggerGen = () => {
 				description: "Local development server",
 			},
 			{
-				url: "https://api.yourproductiondomain.com", 
+				url: "https://propelious-backend.onrender.com", 
 				description: "Production server",
 			},
 		],
