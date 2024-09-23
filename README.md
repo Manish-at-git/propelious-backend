@@ -45,3 +45,20 @@ SECRET_ID=cf93022f8aa84424b9e0998d8d6e8c76
 ```bash
 npm start
 ```
+
+### 4.  You can access swagger on path  "/api-doc"
+
+### 5.  select server on swagger
+You can access the local development server at:
+
+```bash
+Local Development Server: http://localhost:8080
+```
+
+If you are using deployed server, use the following production server URL:
+
+```bash
+Production Server: https://propelious-backend.onrender.com
+```
+
+

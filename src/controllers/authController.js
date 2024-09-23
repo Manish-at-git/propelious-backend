@@ -9,7 +9,7 @@ const signup = async (req, res) => {
         #swagger.description = 'Endpoint to signup a specific user' */
 	const { name, email, password, confirmPassword } = req.body;
 
-	if (!name || !email || !password || !confirmPassword) {
+	if (!name || !email || !password) {
 		return res.status(204).json({ message: StatusMessage.NO_CONTENT });
 	}
 
@@ -17,10 +17,6 @@ const signup = async (req, res) => {
 		const user = await User.findOne({ email });
 		if (user) {
 			return res.status(400).json({ message: StatusMessage.USER_ALREADY_EXISTS });
-		}
-
-		if (password !== confirmPassword) {
-			return res.status(401).json({ message: StatusMessage.INVALID_CREDENTIALS });
 		}
 
 		const hashedPassword = await bcrypt.hash(password, 10);
@@ -47,7 +43,7 @@ const signin = async (req, res) => {
 	try {
 		const user = await User.findOne({ email });
 		if (!user) {
-			return res.status(401).json({ message: StatusMessage.INVALID_CREDENTIALS });
+			return res.status(400).json({ message: StatusMessage.INVALID_CREDENTIALS });
 		}
 		
 		const isValidPassword = await bcrypt.compare(password, user.password);

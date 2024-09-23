@@ -12,5 +12,7 @@ router.delete('/playlists/:playlistId', authMiddleware.authorizeUser, playlistCo
 router.post('/addSongToPlaylist/:playlistId', authMiddleware.authorizeUser, playlistController.addSongToPlaylist);
 router.delete('/playlists/:playlistId/:songId', authMiddleware.authorizeUser, playlistController.deleteSongFromPlaylist);
 router.get('/search', authMiddleware.authorizeUser, playlistController.fetchTrack)
+router.get('/fetchPlaylist', authMiddleware.authorizeUser, playlistController.fetchPlaylist)
+
 
 module.exports = router;

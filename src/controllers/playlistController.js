@@ -36,11 +36,16 @@ const addPlaylist = async (req, res) => {
         .json({ status: 204, error: StatusMessage.NO_CONTENT });
     }
 
+    const array = [1, 2];
+    const randomIndex = Math.floor(Math.random() * array.length);
+    const randomElement = array[randomIndex];
+
     const newPlaylist = new Playlist({
       name,
       description,
       user: user.userId,
       songs: [],
+      imageNumber: randomElement
     });
 
     const savedPlaylist = await newPlaylist.save();
@@ -134,12 +139,10 @@ const addSongToPlaylist = async (req, res) => {
     }] */
 
   const { playlistId } = req.params;
-  const { title, artist, album, duration } = req.body; 
+  const { title, artist, album, duration } = req.body;
 
   if (!title || !artist || !album) {
-    return res
-      .status(400)
-      .json({ message: StatusMessage.NO_CONTENT });
+    return res.status(400).json({ message: StatusMessage.NO_CONTENT });
   }
 
   try {
@@ -193,49 +196,85 @@ const deleteSongFromPlaylist = async (req, res) => {
           "bearerAuth": []
   }] */
 
-  const { playlistId, songId } = req.params; 
+  const { playlistId, songId } = req.params;
 
   try {
-      const playlist = await Playlist.findById(playlistId);
+    const playlist = await Playlist.findById(playlistId);
 
-      if (!playlist) {
-          return res.status(404).json({ 
-              status: 404, 
-              error: StatusMessage.PLAYLIST_NOT_FOUND
-          });
-      }
-
-      const songIndex = playlist.songs.findIndex(
-          (song) => song._id.toString() === songId
-      );
-
-      if (songIndex === -1) {
-          return res.status(404).json({ 
-              status: 404, 
-              error: StatusMessage.SONG_NOT_FOUND_IN_PLAYLIST
-          });
-      }
-
-      playlist.songs.splice(songIndex, 1);
-
-      await playlist.save(); 
-
-      return res.status(200).json({
-          status: 200,
-          message: StatusMessage.SONG_REMOVED_FROM_PLAYLIST,
-          data: { playlist },
+    if (!playlist) {
+      return res.status(404).json({
+        status: 404,
+        error: StatusMessage.PLAYLIST_NOT_FOUND,
       });
+    }
+
+    const songIndex = playlist.songs.findIndex(
+      (song) => song._id.toString() === songId
+    );
+
+    if (songIndex === -1) {
+      return res.status(404).json({
+        status: 404,
+        error: StatusMessage.SONG_NOT_FOUND_IN_PLAYLIST,
+      });
+    }
+
+    playlist.songs.splice(songIndex, 1);
+
+    await playlist.save();
+
+    return res.status(200).json({
+      status: 200,
+      message: StatusMessage.SONG_REMOVED_FROM_PLAYLIST,
+      data: { playlist },
+    });
   } catch (error) {
-      console.error("Error deleting song from playlist:", error);
-      return res.status(500).json({ 
-          status: 500, 
-          message: StatusMessage.INTERNAL_SERVER_ERROR, 
-          error: error.message 
-      });
+    console.error("Error deleting song from playlist:", error);
+    return res.status(500).json({
+      status: 500,
+      message: StatusMessage.INTERNAL_SERVER_ERROR,
+      error: error.message,
+    });
   }
 };
 
 const fetchTrack = async (req, res) => {
+  /* 	#swagger.tags = ['Playlist']
+  #swagger.description = 'fetch songs from spotify' */
+
+  /* #swagger.security = [{
+      "bearerAuth": []
+}] */
+  const { searchQuery } = req.query;
+  if (!searchQuery) {
+    return res
+      .status(400)
+      .json({ status: 400, message: "Search query is required" });
+  }
+  try {
+    const tokenResponse = await getToken();
+    const token = tokenResponse.access_token;
+
+    const tracksData = await fetchTracksFromSpotify(token, searchQuery, "track");
+    const tracks =
+      tracksData?.tracks?.items?.map((item) => ({
+        title: item?.name,
+        duration: Math.floor(item?.duration_ms / 1000),
+        artist: item?.artists?.map((it) => it.name)?.[0],
+        album: item?.album?.name,
+        image: item?.album?.images
+          ?.filter((item, i) => i == 0)
+          ?.map((item) => item?.url),
+      })) || [];
+    res.status(200).json({ status: 200, tracks });
+  } catch (err) {
+    console.error("Error:", err.message);
+    throw new Error("Failed to fetch tracks");
+  }
+};
+
+
+const fetchPlaylist = async (req, res) => {
   /* 	#swagger.tags = ['Playlist']
   #swagger.description = 'fetch songs from spotify' */
 
@@ -250,20 +289,19 @@ try {
   const tokenResponse = await getToken();
   const token = tokenResponse.access_token; 
 
-  const tracksData = await fetchTracksFromSpotify(token, searchQuery);
-  const tracks = tracksData?.tracks?.items?.map((item) => ({
+  const tracksData = await fetchTracksFromSpotify(token, searchQuery, "playlist");
+  const tracks = tracksData?.playlists?.items?.map((item) => ({
     title: item?.name,
-    duration: Math.floor(item?.duration_ms / 1000), 
-    artist: item?.artists?.map((it) => it.name)?.[0],
-    album: item?.album?.name,
+    description: item?.description,
+    image: item?.images?.filter((item, i) => i == 0)?.map((item) => item?.url)?.[0]
   })) || [];
+  console.log(tracks, "imageimageimage")
   res.status(200).json({ status:200, tracks });
 } catch (err) {
   console.error("Error:", err.message);
   throw new Error('Failed to fetch tracks');
 }
 };
-
 
 module.exports = {
   fetchPlaylists,
@@ -272,5 +310,6 @@ module.exports = {
   deletePlaylist,
   addSongToPlaylist,
   deleteSongFromPlaylist,
-  fetchTrack
+  fetchTrack,
+  fetchPlaylist
 };

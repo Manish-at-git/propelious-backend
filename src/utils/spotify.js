@@ -21,8 +21,8 @@ const getToken = async () => {
   return await response.json();
 };
 
-const fetchTracksFromSpotify = async (token, searchQuery) => {
-  const apiUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track`;
+const fetchTracksFromSpotify = async (token, searchQuery, type) => {
+  const apiUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=${type}`;
 
   try {
     const response = await axios.get(apiUrl, {
