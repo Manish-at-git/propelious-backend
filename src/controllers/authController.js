@@ -48,7 +48,7 @@ const signin = async (req, res) => {
 		
 		const isValidPassword = await bcrypt.compare(password, user.password);
 		if (!isValidPassword) {
-			return res.status(401).json({ message: StatusMessage.INVALID_CREDENTIALS });
+			return res.status(400).json({ message: StatusMessage.INVALID_CREDENTIALS });
 		}
 
 		const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
